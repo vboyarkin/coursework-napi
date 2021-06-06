@@ -97,7 +97,7 @@
         .map(comp => `<div class"scc_container"><p class="scc">${comp}</p></div>`)
         .join('\n');
 
-      const head = `<label>Число компонент внешней связности: ${components.length}</label>\n`;
+      const head = `<label>Число компонент<br>сильной связности: ${components.length}</label>\n`;
 
       results.innerHTML = head + components_html;
     }
@@ -114,9 +114,11 @@
       let edge;
 
       if (v1 < v2) {
-        edge = edges[nodesSize * v1 + v2 - calculateIndexSurplus(v1)];
+        // edge = edges[nodesSize * v1 + v2 - getUnusedEdgesOffset(v1)];
+        edge = getEdge(v2, v1)
       } else {
-        edge = edges[nodesSize * v2 + v1 - calculateIndexSurplus(v2)];
+        // edge = edges[nodesSize * v2 + v1 - getUnusedEdgesOffset(v2)];
+        edge = getEdge(v1, v2)
       }
 
       if (this.checked) {
@@ -181,6 +183,7 @@
       this.to = to;
       this.direction = direction;
       this.stroke = buildStroke(from, to, direction);
+
       this.updatePosition = function () {
         this.stroke.setAttribute('d', `m ${from.position.x},${from.position.y} ${to.position.x - from.position.x},${to.position.y - from.position.y}`);
       }
@@ -198,12 +201,12 @@
       }
     }
 
-    function calculateIndexSurplus(i) {
-      let surplus = 0;
-      for (i += 1; i > 0; i--) {
-        surplus += i;
-      }
-      return surplus;
+    function getUnusedEdgesOffset(i) {
+      return (i + 2) * (i + 1) / 2;
+    }
+
+    function getEdge(i, j) {
+      return edges[nodesSize * j + i - getUnusedEdgesOffset(j)];
     }
 
     function calculateForces() {
@@ -240,6 +243,18 @@
       }
     }
 
+    function animate() {
+      calculateForces();
+
+      for (let i = 0; i < nodesSize; i++) {
+        nodes[i].addForce(nodes[i].acceleration.x, nodes[i].acceleration.y);
+        nodes[i].updatePosition();
+      }
+      for (let stroke of edges) {
+        stroke.updatePosition();
+      }
+    }
+
     function findScc() {
       event.preventDefault();
 
@@ -251,18 +266,6 @@
       const result = compute_str(mx.length + "\n" + mx_str);
 
       showResults(result);
-    }
-
-    function animate() {
-      calculateForces();
-
-      for (let i = 0; i < nodesSize; i++) {
-        nodes[i].addForce(nodes[i].acceleration.x, nodes[i].acceleration.y);
-        nodes[i].updatePosition();
-      }
-      for (let stroke of edges) {
-        stroke.updatePosition();
-      }
     }
 
     function tableToMx() {
@@ -342,9 +345,11 @@
         } else {
           if (matrixRowElements[j].checked) {
             if (matrixRows[j].getElementsByTagName('input')[i].checked) {
-              edges[nodesSize * j + i - calculateIndexSurplus(j)].direction = 2;
+              // edges[nodesSize * j + i - getUnusedEdgesOffset(j)].direction = 2;
+              getEdge(i, j).direction = 2;
             } else {
-              edges[nodesSize * j + i - calculateIndexSurplus(j)].direction = -1;
+              // edges[nodesSize * j + i - getUnusedEdgesOffset(j)].direction = -1;
+              getEdge(i, j).direction = -1;
             }
           }
         }

@@ -208,25 +208,6 @@ vvi extract_scc(vvi A) {
     vector<int> row(A.size());
     const int n = A.size();
 
-    // for (int row_i = 0; row_i < n; row_i++) {
-    //     // take row_i-th row from A
-    //     for (int j = 0; j < n; j++) {
-    //         row[j] = A[j][row_i];
-    //     }
-
-    //     for (int j = 0; j < n; j++) {
-    //         // why?
-    //         if (j == row_i) continue;
-
-    //         if (ind == 0) {
-    //             for (int k = 0; k < n; k++) {
-    //                 A[k][j] = 0;
-    //             }
-    //         }
-
-    //         ind = 0;
-    //     }
-    // }
     vvi all_scc;
 
     for (size_t row_i = 0; row_i < n; row_i++) {
