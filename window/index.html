@@ -42,6 +42,63 @@
   <script>
     "use strict";
 
+    function insertMatrixContainer() {
+      // insert legend
+      for (let i = 0; i < nodesSize; i++) {
+        matrixForm.insertAdjacentHTML('beforeend', `<span class="legend horizontal">${i + 1} </span>`);
+      }
+      for (let i = 0; i < nodesSize; i++) {
+        let div = document.createElement('div');
+        div.insertAdjacentHTML('afterbegin', `<span class="legend">${i + 1} </span>`);
+
+        // insert checkboxes
+        for (let j = 0; j < nodesSize; j++) {
+          div.appendChild(getCheckbox(i, j));
+        }
+
+        matrixForm.appendChild(div);
+      }
+    }
+
+    function generateEdgesDeprecated() {
+      let matrixRows = matrixForm.getElementsByTagName('div');
+
+      for (let row = 0; row < nodesSize; row++) {
+        let matrixRowInputs = matrixRows[row].getElementsByTagName('input');
+
+        for (let col = 0; col < nodesSize; col++) {
+
+          if (row < col) {
+            if (matrixRowInputs[col].checked)
+              edges.push(new edge(nodes[row], nodes[col], 1));
+            else
+              edges.push(new edge(nodes[row], nodes[col], 0));
+          } else {
+            if (matrixRowInputs[col].checked) {
+              if (matrixRows[col].getElementsByTagName('input')[row].checked)
+                getEdge(row, col).direction = 2;
+              else
+                getEdge(row, col).direction = -1;
+            }
+          }
+
+        }
+      }
+    }
+
+    function generateEdges() {
+      let matrixRows = matrixForm.getElementsByTagName('div');
+
+      for (let row = 0; row < nodesSize; row++) {
+        let matrixRowInputs = matrixRows[row].getElementsByTagName('input');
+
+        for (let col = 0; col < nodesSize; col++) {
+          if (row < col)
+            edges.push(new edge(nodes[row], nodes[col], 0));
+        }
+      }
+    }
+
     function buildNode(number, x, y) {
       let svgns = "http://www.w3.org/2000/svg";
       let g = document.createElementNS(svgns, 'g');
@@ -66,7 +123,7 @@
       return path;
     }
 
-    function buildCheckbox(i, j) {
+    function getCheckbox(i, j) {
       let label = document.createElement('label');
       let checkbox = document.createElement('input');
 
@@ -114,10 +171,8 @@
       let edge;
 
       if (v1 < v2) {
-        // edge = edges[nodesSize * v1 + v2 - getUnusedEdgesOffset(v1)];
         edge = getEdge(v2, v1)
       } else {
-        // edge = edges[nodesSize * v2 + v1 - getUnusedEdgesOffset(v2)];
         edge = getEdge(v1, v2)
       }
 
@@ -291,10 +346,10 @@
     const ZERO_VELOCITY = 0.04
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
-    let counterValue = urlParams.get('counter');
-    counterValue = counterValue || 5;
+    let nodesSize = urlParams.get('counter');
+    nodesSize = nodesSize || 5;
     let counter = document.getElementById('nodesCounter');
-    counter.value = counterValue;
+    counter.value = nodesSize;
 
     let nodes = [];
     let edges = [];
@@ -308,22 +363,7 @@
     document.getElementById('buttonCalculate').onclick = findScc;
     document.getElementById('buttonShake').onclick = shake;
 
-
-    let nodesSize = parseInt(counter.value);
-    for (let i = 0; i < nodesSize; i++) {
-      matrixForm.insertAdjacentHTML('beforeend', `<span class="legend horizontal">${i + 1} </span>`);
-    }
-
-    for (let i = 0; i < nodesSize; i++) {
-      let div = document.createElement('div');
-      div.insertAdjacentHTML('afterbegin', `<span class="legend">${i + 1} </span>`);
-
-      for (let j = 0; j < nodesSize; j++) {
-        div.appendChild(buildCheckbox(i, j));
-      }
-
-      matrixForm.appendChild(div);
-    }
+    insertMatrixContainer();
 
     for (let i = 0; i < nodesSize; i++) {
       let nodeImg = buildNode(i, i * 100, i * 50);
@@ -331,30 +371,7 @@
       nodes.push(new node(nodeImg));
     }
 
-    let matrixRows = matrixForm.getElementsByTagName('div');
-    for (let i = 0; i < nodesSize; i++) {
-      let matrixRowElements = matrixRows[i].getElementsByTagName('input');
-
-      for (let j = 0; j < nodesSize; j++) {
-        if (i < j) {
-          if (matrixRowElements[j].checked) {
-            edges.push(new edge(nodes[i], nodes[j], 1));
-          } else {
-            edges.push(new edge(nodes[i], nodes[j], 0));
-          }
-        } else {
-          if (matrixRowElements[j].checked) {
-            if (matrixRows[j].getElementsByTagName('input')[i].checked) {
-              // edges[nodesSize * j + i - getUnusedEdgesOffset(j)].direction = 2;
-              getEdge(i, j).direction = 2;
-            } else {
-              // edges[nodesSize * j + i - getUnusedEdgesOffset(j)].direction = -1;
-              getEdge(i, j).direction = -1;
-            }
-          }
-        }
-      }
-    }
+    generateEdges();
 
     for (let stroke of edges) {
       strokes.appendChild(stroke.stroke);
