@@ -58,27 +58,19 @@ vvi NapiArrToVector(const CallbackInfo& info, const int n) {
 
 Array _VectorToRow(Env env, vvi& mx, int row) {
     Array arr = Array::New(env, mx.size());
-    // Napi::Int32Array int_arr = Napi::Int32Array::New(env, mx.size())
-    // Napi::Value::As<Napi::Number>
 
     for (size_t col = 0; col < mx.size(); col++) {
         auto val = Number::New(env, mx[row][col]);
-        // auto val = String::New(env, to_string((int)mx[row][col]);
         arr.Set(String::New(env, to_string((int)col)), val);
     }
 
     return arr;
 }
 Int32Array _TypedVectorToRow(Env env, vvi& mx, int row) {
-    // Array arr = Array::New(env, mx.size());
     Napi::Int32Array int_arr = Napi::Int32Array::New(env, mx.size());
 
     for (size_t col = 0; col < mx.size(); col++) {
-        // auto val = Number::New(env, mx[row][col]);
         auto val = mx[row][col];
-        // auto val = String::New(env, to_string((int)mx[row][col]);
-        // int_arr.Set(String::New(env, to_string((int)col)), val);
-        // int_arr.Set(col, val);
         int_arr[col] = val;
     }
 
@@ -88,7 +80,6 @@ Object VectorToOutObject(Env env, vvi& mx) {
     Object obj = Object::New(env);
 
     for (size_t row = 0; row < mx.size(); row++) {
-        // obj.Set(row, _VectorToRow(env, mx, row));
         obj.Set(row, _TypedVectorToRow(env, mx, row));
     }
 
@@ -116,13 +107,10 @@ Object Compute(const CallbackInfo& info) {
 
     result.Set(1, out_mx);
     result.Set(2, mx.size());
-    // result.Set(3, info.Length());
     return result;
 
     // return out_mx;
     return VectorToOutObject(env, test);
-
-    // return _VectorToRow(env, mx, 1);
 }
 Object Compute_str(const CallbackInfo& info) {
     Env env = info.Env();
@@ -136,8 +124,6 @@ Object Compute_str(const CallbackInfo& info) {
     }
 
     auto mx = NapiStrToVector(info);
-
-    // auto out_mx = VectorToOutObject(env, mx);
 
     auto out_str = find_scc(mx);
 

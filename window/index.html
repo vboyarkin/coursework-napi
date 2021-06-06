@@ -3,113 +3,22 @@
 
 <head>
   <meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
   <title>Компоненты сильной связности графа</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Cambria, sans-serif;
-    }
-
-    .stroke {
-      stroke: #069961;
-      stroke-width: 1;
-      fill: none;
-    }
-
-    .hidden {
-      display: none;
-      stroke: #ececec;
-    }
-
-    .node {
-      stroke: none;
-    }
-
-    .nodeContainer:hover .node {
-      fill: #07c77d;
-      r: 27;
-    }
-
-    #adjacencyMatrix {
-      margin: 15px 0 8px;
-    }
-
-    ul {
-      padding-left: 16px;
-    }
-
-    .label {
-      font-style: normal;
-      font-weight: bold;
-      font-size: 28px;
-      text-align: center;
-      text-anchor: middle;
-      user-select: none;
-      fill: #ffffff
-    }
-
-    .node_colored {
-      fill: #06b370;
-      overflow: visible;
-    }
-
-    /* .selected {
-            color: #e62c2c;
-        }
-
-        .highlighted {
-            fill: #ff5555;
-        } */
-
-    .tableContainer {
-      position: absolute;
-      top: 16px;
-      left: 18px;
-    }
-
-    .legend {
-      width: 12px;
-      display: inline-block;
-      font-family: Cambria, sans-serif;
-    }
-
-    .horizontal {
-      width: 20px;
-    }
-
-    .horizontal:first-of-type {
-      margin-left: 17px;
-    }
-
-    input[type="button"],
-    input[type="number"],
-    button {
-      padding: 3px;
-      margin: 5px;
-    }
-
-    .verticesForm {
-      /* width: 50px; */
-      padding-left: 8px;
-    }
-
-    .verticesForm input {
-      display: block;
-    }
-  </style>
+  <link rel="stylesheet" href="./index.css">
 </head>
-
 
 <body>
   <div class="tableContainer">
     <form class="verticesForm" id="counter">
+      <label>Количество вершин в графе</label>
       <input id="nodesCounter" type="number" name="counter">
     </form>
     <form id="matrixWrapper">
       <div id="adjacencyMatrix"></div>
-      <button id="buttonCalculate" type="Button" name="calculate" value="Calculate">Вычислить</button>
-      <button id="buttonShake" type="Button" name="shake" value="Shake">Встряхнуть</button>
+      <button class="button green" id="buttonCalculate" type="Button" name="calculate"
+        value="Calculate">Вычислить</button>
+      <button class="button green" id="buttonShake" type="Button" name="shake" value="Shake">Встряхнуть</button>
     </form>
     <div id="results"></div>
   </div>
@@ -117,10 +26,12 @@
     <svg id=graph width="100%" height="700">
       <defs>
         <marker id="marker_s" orient="auto" refY="0" refX="-36" class="node_colored">
-          <path d="M 0,0 5,-5 -12.5,0 5,5 Z" />
+          <path class="marker_bg" d="M 0,0 0,-5 -12.5,0 0,5 Z"></path>
+          <path d="M 0,0 0,-5 -12.5,0 0,5 Z"></path>
         </marker>
         <marker id="marker_e" orient="auto" refY="0" refX="23.5" class="node_colored">
-          <path d="m -12.5,0 -5,-5 L 0,0 -17.5,5 Z" />
+          <path class="marker_bg" d="m -12.5,0 -0,-5 L 0,0 -12.5,5 Z"></path>
+          <path d="m -12.5,0 -0,-5 L 0,0 -12.5,5 Z"></path>
         </marker>
       </defs>
       <g id="strokes"></g>
@@ -138,8 +49,11 @@
       g.setAttribute('id', `node_${number}`);
       g.classList.add('nodeContainer')
       g.setAttribute('transform', `translate(${x},${y})`);
-      g.innerHTML = `<circle class="node node_colored" r="24" cx="0" cy="0" />
-                <text class="label" x="0" y="10" >${number + 1}</text>`;
+      g.innerHTML = `
+        <circle class="node_bg" r="24" cx="0" cy="0"/>
+        <circle class="node node_colored" r="24" cx="0" cy="0"/>
+        <circle class="node_colored" r="24" cx="0" cy="0"/>
+        <text class="label" x="0" y="10">${number + 1}</text>`;
 
       return g;
     }
@@ -166,32 +80,26 @@
       return label
     }
 
-    function reverse() {
-      for (let e of edges) {
-        if (Math.abs(e.direction) == 1) {
-          e.direction *= -1;
-        }
-      }
-    }
-
-    function buildResults() {
+    function showResults(result_str) {
       results.innerHTML = '';
-      let resultsList = document.createElement('ul');
-      results.appendChild(resultsList);
-      resultsList.insertAdjacentHTML('beforebegin', `<p>Число внешней устойчивости<br> равно ${dnf[0].length}.</p><p>Минимальные внешне<br> устойчивые подмножества:</p>`);
-      for (let i = 0; i < dnf.length; i++) {
-        let li = document.createElement('li');
-        for (let j in dnf[i]) {
-          if (j < dnf[i].length - 1) {
-            li.insertAdjacentText('beforeend', `${String.fromCharCode(97 + dnf[i][j])}, `);
-          } else {
-            li.insertAdjacentText('beforeend', `${String.fromCharCode(97 + dnf[i][j])}`);
-          }
-        }
-        li.setAttribute('id', `li_${i}`);
-        li.onclick = highlightNodes;
-        resultsList.appendChild(li);
-      }
+
+      const components = result_str.scc
+        .split('\n')
+        .map(str => str.trim())
+        .filter(x => x);
+
+      const components_html = components
+        .map(
+          comp => comp.split(' ')
+            .map(vert => `<span class="scc_vertice">${vert}</span>`)
+            .join(' ')
+        )
+        .map(comp => `<div class"scc_container"><p class="scc">${comp}</p></div>`)
+        .join('\n');
+
+      const head = `<label>Число компонент внешней связности: ${components.length}</label>\n`;
+
+      results.innerHTML = head + components_html;
     }
 
     function checkboxChange() {
@@ -237,7 +145,6 @@
           edge.stroke.classList.add('hidden');
         }
       }
-      recalculateCnf();
     }
 
     function node(element) {
@@ -254,8 +161,8 @@
       this.updatePosition = function () {
         this.velocity.x += this.acceleration.x;
         this.velocity.y += this.acceleration.y;
-        this.velocity.x *= DRAG;
-        this.velocity.y *= DRAG;
+        this.velocity.x *= C_SLOW;
+        this.velocity.y *= C_SLOW;
 
         if (Math.abs(this.velocity.x) < ZERO_VELOCITY) this.velocity.x = 0;
         if (Math.abs(this.velocity.y) < ZERO_VELOCITY) this.velocity.y = 0;
@@ -304,121 +211,51 @@
       const c2 = 170.01;
       const c3 = 1.51;
       const c4 = 300.05;
-      let distance;
-      let distanceX;
-      let distanceY;
-      let force;
-      let forceX;
-      let forceY;
 
       for (let stroke of edges) {
-        if (stroke.direction) {
-          distanceX = stroke.from.position.x - stroke.to.position.x;
-          distanceY = stroke.from.position.y - stroke.to.position.y;
-          distance = Math.sqrt((distanceX) ** 2 + (distanceY) ** 2) + Math.random() / 5;
-          force = c1 * Math.log(Math.abs(distance) / c2);
-          forceX = force * distanceX / distance;
-          forceY = force * distanceY / distance;
-          stroke.from.acceleration.x -= forceX;
-          stroke.from.acceleration.y -= forceY;
-          stroke.to.acceleration.x += forceX;
-          stroke.to.acceleration.y += forceY;
-        } else {
-          distanceX = stroke.from.position.x - stroke.to.position.x;
-          distanceY = stroke.from.position.y - stroke.to.position.y;
-          distance = Math.sqrt((distanceX) ** 2 + (distanceY) ** 2) + Math.random() / 5;
-          force = c3 * Math.log(Math.abs(distance) / c4);
-          forceX = force * distanceX / distance;
-          forceY = force * distanceY / distance;
-          stroke.from.acceleration.x -= forceX;
-          stroke.from.acceleration.y -= forceY;
-          stroke.to.acceleration.x += forceX;
-          stroke.to.acceleration.y += forceY;
-        }
-      }
-    }
-    function onlyUnique(value, index, self) {
-      return self.indexOf(value) === index;
-    }
-    function cnf2dnf(elements) {
-      if (!Array.isArray(elements)) throw new TypeError();
+        const distanceX = stroke.from.position.x - stroke.to.position.x;
+        const distanceY = stroke.from.position.y - stroke.to.position.y;
+        const distance = Math.sqrt((distanceX) ** 2 + (distanceY) ** 2) + Math.random() / 5;
 
-      let end = elements.length - 1,
-        result = [];
+        const Cl = stroke.direction ? c1 : c3;
+        const Cr = stroke.direction ? c2 : c4;
 
-      function addTo(curr, start) {
-        let first = elements[start],
-          last = (start === end);
+        const force = Cl * Math.log(Math.abs(distance) / Cr);
 
-        for (let i = 0; i < first.length; ++i) {
-          let copy = curr.slice();
-          copy.push(first[i]);
+        const forceX = force * distanceX / distance;
+        const forceY = force * distanceY / distance;
 
-          if (last) {
-            result.push(copy.filter(onlyUnique).sort());
-          } else {
-            addTo(copy, start + 1);
-          }
-        }
-      }
-
-      if (elements.length) {
-        addTo([], 0);
-      } else {
-        result.push([]);
-      }
-
-      return result;
-    }
-
-    function isRedundand(sample, suspect) {
-      for (let i = 0; i < sample.length; i++) {
-        let offset = 0;
-        while (sample[i] > suspect[i + offset]) {
-          offset++;
-        }
-        if (sample[i] != suspect[i + offset]) return 0;
-      }
-      return 1;
-    }
-
-    function reduce(array) {
-      let i = 0;
-      let sample;
-      while (sample = array[i]) {
-        for (let j = array.length - 1; j > i; j--) {
-          if (isRedundand(sample, array[j])) {
-            array.splice(j, 1);
-          }
-        }
-        i++;
+        stroke.from.acceleration.x -= forceX;
+        stroke.from.acceleration.y -= forceY;
+        stroke.to.acceleration.x += forceX;
+        stroke.to.acceleration.y += forceY;
       }
     }
 
     function shake() {
       event.preventDefault();
-      for (let n of nodes) {
+      for (const n of nodes) {
         n.velocity.x = Math.random() * 50 - 25;
         n.velocity.y = Math.random() * 50 - 25;
       }
     }
 
-    function findStability() {
+    function findScc() {
       event.preventDefault();
 
       const mx = tableToMx();
+      const mx_str = mx
+        .map(row => row.join(' '))
+        .join('\n');
 
+      const result = compute_str(mx.length + "\n" + mx_str);
 
-
-      const result = hello_world.compute_str();
-
-
-      buildResults();
+      showResults(result);
     }
-
 
     function animate() {
       calculateForces();
+
       for (let i = 0; i < nodesSize; i++) {
         nodes[i].addForce(nodes[i].acceleration.x, nodes[i].acceleration.y);
         nodes[i].updatePosition();
@@ -445,22 +282,19 @@
       return mx;
     }
 
-    // ---------------------------------------------------------------------------------------
+    ////////////////////////////////////////////////////
 
-    const DRAG = 0.7
-    const ZERO_VELOCITY = 0.03
+    const C_SLOW = 0.7
+    const ZERO_VELOCITY = 0.04
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     let counterValue = urlParams.get('counter');
-    counterValue ||= 7;
+    counterValue = counterValue || 5;
     let counter = document.getElementById('nodesCounter');
     counter.value = counterValue;
 
-    let nodesSize = parseInt(counter.value);
     let nodes = [];
     let edges = [];
-    let dnf = [];
-    let cnf = [];
     let canvas = document.getElementById('nodes');
     let strokes = document.getElementById('strokes');
     let counterForm = document.getElementById('counter');
@@ -468,17 +302,18 @@
     let svg = document.getElementById('graph');
     let results = document.getElementById('results');
 
-    document.getElementById('buttonCalculate').onclick = findStability;
+    document.getElementById('buttonCalculate').onclick = findScc;
     document.getElementById('buttonShake').onclick = shake;
 
 
+    let nodesSize = parseInt(counter.value);
     for (let i = 0; i < nodesSize; i++) {
-      matrixForm.insertAdjacentHTML('beforeend', `<span class="legend horizontal">${i} </span>`);
+      matrixForm.insertAdjacentHTML('beforeend', `<span class="legend horizontal">${i + 1} </span>`);
     }
 
     for (let i = 0; i < nodesSize; i++) {
       let div = document.createElement('div');
-      div.insertAdjacentHTML('afterbegin', `<span class="legend">${i} </span>`);
+      div.insertAdjacentHTML('afterbegin', `<span class="legend">${i + 1} </span>`);
 
       for (let j = 0; j < nodesSize; j++) {
         div.appendChild(buildCheckbox(i, j));
