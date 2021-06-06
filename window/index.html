@@ -60,32 +60,6 @@
       }
     }
 
-    function generateEdgesDeprecated() {
-      let matrixRows = matrixForm.getElementsByTagName('div');
-
-      for (let row = 0; row < nodesSize; row++) {
-        let matrixRowInputs = matrixRows[row].getElementsByTagName('input');
-
-        for (let col = 0; col < nodesSize; col++) {
-
-          if (row < col) {
-            if (matrixRowInputs[col].checked)
-              edges.push(new edge(nodes[row], nodes[col], 1));
-            else
-              edges.push(new edge(nodes[row], nodes[col], 0));
-          } else {
-            if (matrixRowInputs[col].checked) {
-              if (matrixRows[col].getElementsByTagName('input')[row].checked)
-                getEdge(row, col).direction = 2;
-              else
-                getEdge(row, col).direction = -1;
-            }
-          }
-
-        }
-      }
-    }
-
     function generateEdges() {
       let matrixRows = matrixForm.getElementsByTagName('div');
 
@@ -97,8 +71,19 @@
             edges.push(new edge(nodes[row], nodes[col], 0));
         }
       }
+      
+      for (let stroke of edges) {
+        strokes.appendChild(stroke.stroke);
+        stroke.updateConnections();
+      }
     }
-
+    function generateNodes() {
+      for (let i = 0; i < nodesSize; i++) {
+        let nodeImg = buildNode(i, i * 100, i * 50);
+        canvas.appendChild(nodeImg);
+        nodes.push(new node(nodeImg));
+      }
+    }
     function buildNode(number, x, y) {
       let svgns = "http://www.w3.org/2000/svg";
       let g = document.createElementNS(svgns, 'g');
@@ -364,19 +349,8 @@
     document.getElementById('buttonShake').onclick = shake;
 
     insertMatrixContainer();
-
-    for (let i = 0; i < nodesSize; i++) {
-      let nodeImg = buildNode(i, i * 100, i * 50);
-      canvas.appendChild(nodeImg);
-      nodes.push(new node(nodeImg));
-    }
-
+    generateNodes();
     generateEdges();
-
-    for (let stroke of edges) {
-      strokes.appendChild(stroke.stroke);
-      stroke.updateConnections();
-    }
 
     let delay = setInterval(animate, 35);
 
