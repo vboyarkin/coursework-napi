@@ -42,7 +42,7 @@
   <script>
     "use strict";
 
-    function insertMatrixContainer() {
+    function insertMatrixContainer(nodesSize, matrixForm) {
       // insert legend
       for (let i = 0; i < nodesSize; i++) {
         matrixForm.insertAdjacentHTML('beforeend', `<span class="legend horizontal">${i + 1} </span>`);
@@ -60,7 +60,7 @@
       }
     }
 
-    function generateEdges() {
+    function generateEdges(nodes, nodesSize, edges, matrixForm, strokes) {
       let matrixRows = matrixForm.getElementsByTagName('div');
 
       for (let row = 0; row < nodesSize; row++) {
@@ -71,13 +71,13 @@
             edges.push(new edge(nodes[row], nodes[col], 0));
         }
       }
-      
+
       for (let stroke of edges) {
         strokes.appendChild(stroke.stroke);
         stroke.updateConnections();
       }
     }
-    function generateNodes() {
+    function generateNodes(nodes, nodesSize, canvas) {
       for (let i = 0; i < nodesSize; i++) {
         let nodeImg = buildNode(i, i * 100, i * 50);
         canvas.appendChild(nodeImg);
@@ -153,13 +153,7 @@
 
       if (v1 == v2) return;
 
-      let edge;
-
-      if (v1 < v2) {
-        edge = getEdge(v2, v1)
-      } else {
-        edge = getEdge(v1, v2)
-      }
+      let edge = getEdge(v1, v2);
 
       if (this.checked) {
         if (edge.direction == 0) {
@@ -229,6 +223,8 @@
       }
       this.updateConnections = function () {
         this.stroke.setAttribute('class', 'stroke');
+
+        // TODO: switch
         if (this.direction === 2) {
           this.stroke.setAttribute('style', "marker-start:url(#marker_s);marker-end:url(#marker_e)");
         } else if (this.direction === 1) {
@@ -244,26 +240,39 @@
     function getUnusedEdgesOffset(i) {
       return (i + 2) * (i + 1) / 2;
     }
-
     function getEdge(i, j) {
+      if (i < j)
+        [i, j] = [j, i]
+
       return edges[nodesSize * j + i - getUnusedEdgesOffset(j)];
     }
 
+    function shake() {
+      const SHAKE = 40;
+
+      event.preventDefault();
+      for (const node of nodes) {
+        node.velocity.x = Math.random() * SHAKE - (SHAKE / 2);
+        node.velocity.y = Math.random() * SHAKE - (SHAKE / 2);
+      }
+    }
+
     function calculateForces() {
-      const c1 = 2.01;
-      const c2 = 170.01;
-      const c3 = 1.51;
-      const c4 = 300.05;
+      const PULL_HAS_EDGE = 2;
+      const STASIS_DISTANCE_HAS_EDGE = 220;
+      const PULL_NO_EDGE = 1.5;
+      const STASIS_DISTANCE_NO_EDGE = 300;
 
       for (let stroke of edges) {
         const distanceX = stroke.from.position.x - stroke.to.position.x;
         const distanceY = stroke.from.position.y - stroke.to.position.y;
         const distance = Math.sqrt((distanceX) ** 2 + (distanceY) ** 2) + Math.random() / 5;
 
-        const Cl = stroke.direction ? c1 : c3;
-        const Cr = stroke.direction ? c2 : c4;
+        const PULL = stroke.direction ? PULL_HAS_EDGE : PULL_NO_EDGE;
+        const STASIS_DISTANCE = stroke.direction ? STASIS_DISTANCE_HAS_EDGE : STASIS_DISTANCE_NO_EDGE;
 
-        const force = Cl * Math.log(Math.abs(distance) / Cr);
+        // const force = PULL * Math.log(Math.abs(distance) / STASIS_DISTANCE);
+        const force = PULL * Math.log(distance / STASIS_DISTANCE);
 
         const forceX = force * distanceX / distance;
         const forceY = force * distanceY / distance;
@@ -272,14 +281,6 @@
         stroke.from.acceleration.y -= forceY;
         stroke.to.acceleration.x += forceX;
         stroke.to.acceleration.y += forceY;
-      }
-    }
-
-    function shake() {
-      event.preventDefault();
-      for (const n of nodes) {
-        n.velocity.x = Math.random() * 50 - 25;
-        n.velocity.y = Math.random() * 50 - 25;
       }
     }
 
@@ -348,9 +349,9 @@
     document.getElementById('buttonCalculate').onclick = findScc;
     document.getElementById('buttonShake').onclick = shake;
 
-    insertMatrixContainer();
-    generateNodes();
-    generateEdges();
+    insertMatrixContainer(nodesSize, matrixForm);
+    generateNodes(nodes, nodesSize, canvas);
+    generateEdges(nodes, nodesSize, edges, matrixForm, strokes);
 
     let delay = setInterval(animate, 35);
 
