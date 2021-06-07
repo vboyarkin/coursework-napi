@@ -44,37 +44,6 @@ vvi mx_read(int N) {
     return mx;
 }
 
-vvi mx_prod_bin(vvi &a, vvi &b) {
-    int rows = a.size();
-    int cols = b[0].size();
-    vvi mult(rows, vec<int>(cols));
-
-    if (a[0].size() != b.size()) cout << "bad mx size!\n";
-
-    for (int i = 0; i < rows; ++i)
-        for (int j = 0; j < cols; ++j)
-            for (int k = 0; k < a[0].size(); ++k) {
-                mult[i][j] = (mult[i][j] ^ (a[i][k] * b[k][j]));
-            }
-
-    return mult;
-}
-vvi mx_prod_old(vvi &a, vvi &b) {
-    int rows = a.size();
-    int cols = b[0].size();
-    vvi mult(rows, vec<int>(cols));
-
-    if (a[0].size() != b.size()) cout << "bad mx size!\n";
-
-    for (int i = 0; i < rows; ++i)
-        for (int j = 0; j < cols; ++j)
-            for (int k = 0; k < a[0].size(); ++k) {
-                mult[i][j] += a[i][k] * b[k][j];
-            }
-
-    return mult;
-}
-
 vvi mx_apply(vvi &a, vvi &b, function<int(int, int)> action) {
     if (a.size() != b.size() || a[0].size() != b[0].size())
         cout << "mx_apply: a & b sizes are not the same!";
@@ -161,9 +130,6 @@ vvi tran(vvi &a) {
 
     for (size_t i = 0; i < N; i++) {
         for (size_t j = 0; j < N; j++) {
-            //    auto temp = a[i][j] ;
-            //    a[i][j] = a[j][i];
-            //    a[j][i] = temp;
             result[i][j] = a[j][i];
         }
     }

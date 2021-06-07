@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "charconv": "cpp",
+        "chrono": "cpp",
+        "format": "cpp"
+    }
+}

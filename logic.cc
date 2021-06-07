@@ -16,6 +16,7 @@ using namespace std;
 
 typedef vec<vec<int>> vvi;
 
+// convert input string from electron to matrix
 vvi NapiStrToVector(const CallbackInfo& info_container) {
     auto str = info_container[0].ToString();
 
@@ -35,83 +36,7 @@ vvi NapiStrToVector(const CallbackInfo& info_container) {
 
     return mx;
 }
-vvi NapiArrToVector(const CallbackInfo& info, const int n) {
-    // auto info = info_container[0].As<Object>();
-    // auto info = info_container[0].ToObject();
-    // const int n = info.Length();
-    // auto temp_str  = static_cast<string>(info["0"]);
-    // const int n = (info["0"]);
-    // const int n = static_cast<int>(temp_str);
 
-    vvi mx(n, vec<int>(n, -1));
-
-    for (size_t i = 0; i < n; i++) {
-        auto row = info[i].As<Array>();
-
-        for (size_t j = 0; j < n; j++) {
-            mx[i][j] = static_cast<Value>(row[j]).ToNumber().Int32Value();
-        }
-    }
-
-    return mx;
-}
-
-Array _VectorToRow(Env env, vvi& mx, int row) {
-    Array arr = Array::New(env, mx.size());
-
-    for (size_t col = 0; col < mx.size(); col++) {
-        auto val = Number::New(env, mx[row][col]);
-        arr.Set(String::New(env, to_string((int)col)), val);
-    }
-
-    return arr;
-}
-Int32Array _TypedVectorToRow(Env env, vvi& mx, int row) {
-    Napi::Int32Array int_arr = Napi::Int32Array::New(env, mx.size());
-
-    for (size_t col = 0; col < mx.size(); col++) {
-        auto val = mx[row][col];
-        int_arr[col] = val;
-    }
-
-    return int_arr;
-}
-Object VectorToOutObject(Env env, vvi& mx) {
-    Object obj = Object::New(env);
-
-    for (size_t row = 0; row < mx.size(); row++) {
-        obj.Set(row, _TypedVectorToRow(env, mx, row));
-    }
-
-    return obj;
-}
-
-Object Compute(const CallbackInfo& info) {
-    Env env = info.Env();
-
-    if (info.Length() < 1) {
-        Object err = Object::New(env);
-        err.Set(String::New(env, "error"),
-                String::New(env, "not enough parameters"));
-
-        return err;
-    }
-
-    auto mx = NapiArrToVector(info, 3);
-
-    auto out_mx = VectorToOutObject(env, mx);
-
-    auto test = vvi{{8, 2, 3}, {5, 8, -9}, {8, 0, 3}};
-
-    Object result = Object::New(env);
-
-    result.Set(1, out_mx);
-    result.Set(2, mx.size());
-    return result;
-
-    // return out_mx;
-    return VectorToOutObject(env, test);
-}
 Object Compute_str(const CallbackInfo& info) {
     Env env = info.Env();
 

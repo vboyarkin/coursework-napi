@@ -8,6 +8,61 @@ Function.prototype.bindArgs = function (...boundArgs) {
     }
 }
 
+
+function node(element) {
+    this.node = element;
+    this.position = { x: 550 + Math.random() * 15, y: 250 + Math.random() * 5 };
+    this.velocity = { x: 0, y: 0 };
+    this.acceleration = { x: 0, y: 0 };
+
+    this.addForce = function (x, y) {
+        this.acceleration.x += x;
+        this.acceleration.y += y;
+    };
+
+    this.updatePosition = function () {
+        this.velocity.x += this.acceleration.x;
+        this.velocity.y += this.acceleration.y;
+        this.velocity.x *= C_SLOW;
+        this.velocity.y *= C_SLOW;
+
+        if (Math.abs(this.velocity.x) < ZERO_VELOCITY) this.velocity.x = 0;
+        if (Math.abs(this.velocity.y) < ZERO_VELOCITY) this.velocity.y = 0;
+
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+        this.acceleration.x = 0;
+        this.acceleration.y = 0;
+
+        this.node.setAttribute('transform', `translate(${this.position.x},${this.position.y})`);
+    };
+}
+
+function edge(from, to, direction) {
+    this.from = from;
+    this.to = to;
+    this.direction = direction;
+    this.stroke = buildStroke(from, to, direction);
+
+    this.updatePosition = function () {
+        this.stroke.setAttribute('d', `m ${from.position.x},${from.position.y} ${to.position.x - from.position.x},${to.position.y - from.position.y}`);
+    }
+    this.updateConnections = function () {
+        this.stroke.setAttribute('class', 'stroke');
+
+        // TODO: switch
+        if (this.direction === 2) {
+            this.stroke.setAttribute('style', "marker-start:url(#marker_s);marker-end:url(#marker_e)");
+        } else if (this.direction === 1) {
+            this.stroke.setAttribute('style', "marker-end:url(#marker_e)");
+        } else if (this.direction === -1) {
+            this.stroke.setAttribute('style', "marker-start:url(#marker_s)");
+        } else { // direction === 0
+            this.stroke.setAttribute('class', 'stroke hidden');
+        }
+    }
+}
+
 function insertMatrixContainer({ nodesSize, matrixForm, edges }) {
     // insert legend
     for (let i = 0; i < nodesSize; i++) {
@@ -152,60 +207,6 @@ function checkboxChange({ edges, nodesSize }) {
     }
 }
 
-function node(element) {
-    this.node = element;
-    this.position = { x: 550 + Math.random() * 15, y: 250 + Math.random() * 5 };
-    this.velocity = { x: 0, y: 0 };
-    this.acceleration = { x: 0, y: 0 };
-
-    this.addForce = function (x, y) {
-        this.acceleration.x += x;
-        this.acceleration.y += y;
-    };
-
-    this.updatePosition = function () {
-        this.velocity.x += this.acceleration.x;
-        this.velocity.y += this.acceleration.y;
-        this.velocity.x *= C_SLOW;
-        this.velocity.y *= C_SLOW;
-
-        if (Math.abs(this.velocity.x) < ZERO_VELOCITY) this.velocity.x = 0;
-        if (Math.abs(this.velocity.y) < ZERO_VELOCITY) this.velocity.y = 0;
-
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-        this.acceleration.x = 0;
-        this.acceleration.y = 0;
-
-        this.node.setAttribute('transform', `translate(${this.position.x},${this.position.y})`);
-    };
-}
-
-function edge(from, to, direction) {
-    this.from = from;
-    this.to = to;
-    this.direction = direction;
-    this.stroke = buildStroke(from, to, direction);
-
-    this.updatePosition = function () {
-        this.stroke.setAttribute('d', `m ${from.position.x},${from.position.y} ${to.position.x - from.position.x},${to.position.y - from.position.y}`);
-    }
-    this.updateConnections = function () {
-        this.stroke.setAttribute('class', 'stroke');
-
-        // TODO: switch
-        if (this.direction === 2) {
-            this.stroke.setAttribute('style', "marker-start:url(#marker_s);marker-end:url(#marker_e)");
-        } else if (this.direction === 1) {
-            this.stroke.setAttribute('style', "marker-end:url(#marker_e)");
-        } else if (this.direction === -1) {
-            this.stroke.setAttribute('style', "marker-start:url(#marker_s)");
-        } else { // direction === 0
-            this.stroke.setAttribute('class', 'stroke hidden');
-        }
-    }
-}
-
 function getUnusedEdgesOffset(i) {
     return (i + 2) * (i + 1) / 2;
 }
@@ -269,6 +270,9 @@ function findScc(nodes) {
     event.preventDefault();
 
     const mx = tableToMx(nodes);
+
+    if (!mx || mx.length < 1) return;
+
     const mx_str = mx
         .map(row => row.join(' '))
         .join('\n');
