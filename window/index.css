@@ -30,10 +30,13 @@ body {
     filter: blur(3px);
   }
 
-  .nodeContainer:hover .node {
+  .nodeContainer:hover .node{
     fill: #07c77d;
     /* r: 27; */
     filter: blur(2px);
+  }
+  .button:hover{
+    fill: #07c77d;
   }
 
   #adjacencyMatrix {

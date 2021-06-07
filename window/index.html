@@ -94,16 +94,16 @@
       }
     }
     function buildNode(number, x, y) {
-      let svgns = "http://www.w3.org/2000/svg";
-      let g = document.createElementNS(svgns, 'g');
+      const svgns = "http://www.w3.org/2000/svg";
+      const g = document.createElementNS(svgns, 'g');
 
       g.setAttribute('id', `node_${number}`);
       g.classList.add('nodeContainer')
       g.setAttribute('transform', `translate(${x},${y})`);
       g.innerHTML = `
         <circle class="node_bg" r="24" cx="0" cy="0"/>
-        <circle class="node node_colored" r="24" cx="0" cy="0"/>
         <circle class="node_colored" r="24" cx="0" cy="0"/>
+        <circle class="node node_colored" r="24" cx="0" cy="0"/>
         <text class="label" x="0" y="10">${number + 1}</text>`;
 
       return g;
@@ -306,10 +306,10 @@
       }
     }
 
-    function findScc() {
+    function findScc(nodes) {
       event.preventDefault();
 
-      const mx = tableToMx();
+      const mx = tableToMx(nodes);
       const mx_str = mx
         .map(row => row.join(' '))
         .join('\n');
@@ -319,7 +319,7 @@
       showResults(result);
     }
 
-    function tableToMx() {
+    function tableToMx(nodes) {
       const mx = [];
 
       for (let i = 0; i < nodes.length; i++) {
@@ -340,12 +340,6 @@
     const ZERO_VELOCITY = 0.04
 
     async function main() {
-      // const constants = {
-      //   C_SLOW: 0.7,
-      //   ZERO_VELOCITY: 0.04
-      // }
-      // const C_SLOW = 0.7
-      // const ZERO_VELOCITY = 0.04
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
       let nodesSize = urlParams.get('counter');
@@ -362,12 +356,12 @@
       let svg = document.getElementById('graph');
       let results = document.getElementById('results');
 
-      document.getElementById('buttonCalculate').onclick = findScc;
-      document.getElementById('buttonShake').onclick = shake;
-
       insertMatrixContainer({ nodesSize, matrixForm, edges });
       generateNodes({ nodes, nodesSize, canvas });
       generateEdges({ nodes, nodesSize, edges, matrixForm, strokes });
+
+      document.getElementById('buttonCalculate').onclick = () => findScc(nodes);
+      document.getElementById('buttonShake').onclick = shake;
 
       let delay = setInterval(() => animate({ nodes, nodesSize, edges }), 35);
     }
