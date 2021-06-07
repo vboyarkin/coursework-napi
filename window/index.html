@@ -13,6 +13,14 @@
     <form class="verticesForm" id="counter">
       <label>Количество вершин в графе</label>
       <input id="nodesCounter" type="number" name="counter">
+      <label>Расстояние покоя несмежных вершин</label>
+      <input type="range" min="100" max="400" value="250" class="slider" id="sliderDistNoEdge">
+      <label>Расстояние покоя cмежных вершин</label>
+      <input type="range" min="100" max="370" value="200" class="slider" id="sliderDistHasEdge">
+      <label>Смещение по OX</label>
+      <input type="range" min="100" max="300" value="200" class="slider" id="sliderShiftOX">
+      <label>Смещение по OY</label>
+      <input type="range" min="50" max="150" value="100" class="slider" id="sliderShiftOY">
     </form>
     <form id="matrixWrapper">
       <div id="adjacencyMatrix"></div>
@@ -123,11 +131,16 @@
 
       checkbox.setAttribute('type', 'checkbox');
       checkbox.setAttribute('id', `${i}_${j}`);
-      checkbox.setAttribute('name', `${i}_${j}`);
-      // checkbox.onclick = () => checkboxChange(edges);
+      checkbox.setAttribute('name', `${i}_${j}`);;
       checkbox.onclick = checkboxChange.bindArgs({ edges, nodesSize });
 
       label.appendChild(checkbox);
+
+      // const mark =document.createElement('span');
+      // mark.classList.add('checkmark');
+      // label.appendChild(mark);
+      
+      label.classList.add('checkbox_container')
 
       return label
     }
@@ -257,7 +270,7 @@
       return edges[nodesSize * j + i - getUnusedEdgesOffset(j)];
     }
 
-    function shake() {
+    function shake(nodes) {
       const SHAKE = 40;
 
       event.preventDefault();
@@ -269,9 +282,9 @@
 
     function calculateForces(edges) {
       const PULL_HAS_EDGE = 2;
-      const STASIS_DISTANCE_HAS_EDGE = 220;
+      const STASIS_DISTANCE_HAS_EDGE = document.getElementById("sliderDistHasEdge").value || 220;
       const PULL_NO_EDGE = 1.5;
-      const STASIS_DISTANCE_NO_EDGE = 300;
+      const STASIS_DISTANCE_NO_EDGE = document.getElementById("sliderDistNoEdge").value || 300;
 
       for (let edge of edges) {
         const distanceX = edge.from.position.x - edge.to.position.x;
@@ -318,7 +331,6 @@
 
       showResults(result);
     }
-
     function tableToMx(nodes) {
       const mx = [];
 
@@ -336,8 +348,33 @@
       return mx;
     }
 
+    function shiftNodes({ nodes }, e) {
+      // const isOX = e.srcElement === document.getElementById('sliderShiftOX');
+      const sliderX = document.getElementById('sliderShiftOX');
+      const sliderY = document.getElementById('sliderShiftOY');
+
+      const diffX = sliderX.value - sliderX.dataset.oldX;
+      const diffY = sliderY.value - sliderY.dataset.oldY;
+
+      for (const node of nodes) {
+        node.velocity.x += diffX;
+        node.velocity.y += diffY;
+        node.updatePosition();
+      }
+
+      this.dataset.oldX = sliderX.value;
+      this.dataset.oldY = sliderY.value;
+
+      debugger;
+    }
+
     const C_SLOW = 0.7
     const ZERO_VELOCITY = 0.04
+
+    // const PULL_HAS_EDGE = 2;
+    // const STASIS_DISTANCE_HAS_EDGE = 220;
+    // const PULL_NO_EDGE = 1.5;
+    // const STASIS_DISTANCE_NO_EDGE =  300;
 
     async function main() {
       const queryString = window.location.search;
@@ -361,8 +398,13 @@
       generateEdges({ nodes, nodesSize, edges, matrixForm, strokes });
 
       document.getElementById('buttonCalculate').onclick = () => findScc(nodes);
-      document.getElementById('buttonShake').onclick = shake;
+      document.getElementById('buttonShake').onclick = () => shake(nodes);
 
+      document.getElementById('sliderShiftOX').oninput = shiftNodes.bindArgs({ nodes, nodesSize });
+      document.getElementById('sliderShiftOY').oninput = shiftNodes.bindArgs({ nodes, nodesSize });
+      document.getElementById('sliderShiftOX').dataset.oldX = document.getElementById('sliderShiftOX').value;
+      document.getElementById('sliderShiftOY').dataset.oldY = document.getElementById('sliderShiftOY').value;
+      
       let delay = setInterval(() => animate({ nodes, nodesSize, edges }), 35);
     }
 
