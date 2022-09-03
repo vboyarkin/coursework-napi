@@ -32,11 +32,13 @@ string nl = " \\\\";
 
 vvi mx_zero(int N) { return vvi(N, vec<int>(N)); }
 
-vvi mx_read(int N) {
-    // read mx
+vvi mx_read(int N)
+{
     vvi mx(N, vec<int>(N));
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
             cin >> mx[i][j];
         }
     }
@@ -44,67 +46,86 @@ vvi mx_read(int N) {
     return mx;
 }
 
-vvi mx_apply(vvi &a, vvi &b, function<int(int, int)> action) {
+vvi mx_apply(vvi &a, vvi &b, function<int(int, int)> action)
+{
     if (a.size() != b.size() || a[0].size() != b[0].size())
         cout << "mx_apply: a & b sizes are not the same!";
 
     vvi result(a.size(), vec<int>(a[0].size()));
 
-    for (size_t row = 0; row < a.size(); row++) {
-        for (size_t col = 0; col < a[0].size(); col++) {
+    for (size_t row = 0; row < a.size(); row++)
+    {
+        for (size_t col = 0; col < a[0].size(); col++)
+        {
             result[row][col] = action(a[row][col], b[row][col]);
         }
     }
 
     return result;
 }
-vvi mx_apply(vvi &a, function<int(int)> action) {
+
+vvi mx_apply(vvi &a, function<int(int)> action)
+{
     vvi result(a.size(), vec<int>(a[0].size()));
 
-    for (size_t row = 0; row < a.size(); row++) {
-        for (size_t col = 0; col < a[0].size(); col++) {
+    for (size_t row = 0; row < a.size(); row++)
+    {
+        for (size_t col = 0; col < a[0].size(); col++)
+        {
             result[row][col] = action(a[row][col]);
         }
     }
 
     return result;
 }
-vvi mx_e(int N) {
+
+vvi mx_e(int N)
+{
     vvi result(N, vec<int>(N));
 
-    for (size_t row = 0; row < N; row++) {
+    for (size_t row = 0; row < N; row++)
+    {
         result[row][row] = 1;
     }
 
     return result;
 }
 
-void mx_print(vvi &mx, int INF = INT16_MAX) {
+void mx_print(vvi &mx, int INF = INT16_MAX)
+{
     cout << mx_begin << '\n';
 
-    for (size_t row_i = 0; row_i < mx.size(); row_i++) {
+    for (size_t row_i = 0; row_i < mx.size(); row_i++)
+    {
         auto row = mx[row_i];
 
-        for (size_t i = 0; i < row.size() - 1; i++) {
-            // cout << row[i] << md;
+        for (size_t i = 0; i < row.size() - 1; i++)
+        {
             int entry = row[i];
 
-            if (entry == INF) {
+            if (entry == INF)
+            {
                 cout << "\\infty";
-            } else {
+            }
+            else
+            {
                 cout << entry;
             }
 
             cout << md;
         }
         int entry = row[row.size() - 1];
-        if (entry == INF) {
+        if (entry == INF)
+        {
             cout << "\\inf";
-        } else {
+        }
+        else
+        {
             cout << entry;
         }
 
-        if (row_i != mx.size() - 1) cout << nl;
+        if (row_i != mx.size() - 1)
+            cout << nl;
 
         cout << '\n';
     }
@@ -112,24 +133,32 @@ void mx_print(vvi &mx, int INF = INT16_MAX) {
     cout << mx_end << '\n';
 }
 
-void clear_col(vvi &A, size_t col_to_clear) {
-    for (size_t row = 0; row < A.size(); row++) {
+void clear_col(vvi &A, size_t col_to_clear)
+{
+    for (size_t row = 0; row < A.size(); row++)
+    {
         A[row][col_to_clear] = 0;
     }
 }
 
-///
 int action_or(int l, int r) { return l || r; }
+
 int action_and(int l, int r) { return l && r; }
+
 vvi mx_bit_or(vvi &a, vvi &b) { return mx_apply(a, b, action_or); }
+
 vvi mx_bit_and(vvi &a, vvi &b) { return mx_apply(a, b, action_and); }
-vvi tran(vvi &a) {
+
+vvi tran(vvi &a)
+{
     const int N = a.size();
 
     auto result = mx_zero(N);
 
-    for (size_t i = 0; i < N; i++) {
-        for (size_t j = 0; j < N; j++) {
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < N; j++)
+        {
             result[i][j] = a[j][i];
         }
     }
@@ -137,18 +166,24 @@ vvi tran(vvi &a) {
     return result;
 }
 
-vvi warshall_iter(vvi &T_old, int k) {
+vvi warshall_iter(vvi &T_old, int k)
+{
     const int N = T_old.size();
 
-    if (k == 0) {
+    if (k == 0)
+    {
         return mx_bit_or(mx_e(N), T_old);
-    } else {
+    }
+    else
+    {
         vvi result = mx_zero(N);
 
         k--;
 
-        for (size_t i = 0; i < N; i++) {
-            for (size_t j = 0; j < N; j++) {
+        for (size_t i = 0; i < N; i++)
+        {
+            for (size_t j = 0; j < N; j++)
+            {
                 result[i][j] = T_old[i][j] || (T_old[i][k] && T_old[k][j]);
             }
         }
@@ -156,45 +191,50 @@ vvi warshall_iter(vvi &T_old, int k) {
         return result;
     }
 }
-vvi warshall(vvi &A) {
+vvi warshall(vvi &A)
+{
     const int N = A.size();
     vvi T(A);
 
-    for (size_t k = 0; k <= N; k++) {
+    for (size_t k = 0; k <= N; k++)
+    {
         T = warshall_iter(T, k);
-
-        // cout << "T^{(" << k << ")} = ";
-        // mx_print(T);
     }
 
     return T;
 }
 
-vvi extract_scc(vvi A) {
+vvi extract_scc(vvi A)
+{
     vector<int> row(A.size());
     const int n = A.size();
 
     vvi all_scc;
 
-    for (size_t row_i = 0; row_i < n; row_i++) {
+    for (size_t row_i = 0; row_i < n; row_i++)
+    {
         auto row = A[row_i];
 
         vec<int> cur_scc;
 
-        for (size_t col = 0; col < n; col++) {
-            if (row[col] == 1) {
+        for (size_t col = 0; col < n; col++)
+        {
+            if (row[col] == 1)
+            {
                 cur_scc.push_back(col);
                 clear_col(A, col);
             }
         }
 
-        if (cur_scc.size() != 0) all_scc.push_back(cur_scc);
+        if (cur_scc.size() != 0)
+            all_scc.push_back(cur_scc);
     }
 
     return all_scc;
 }
 
-string find_scc(vvi &mx) {
+string find_scc(vvi &mx)
+{
     auto T = warshall(mx);
     auto T_trans = tran(T);
 
@@ -205,8 +245,10 @@ string find_scc(vvi &mx) {
 
     ostringstream os;
 
-    for (auto &scc : all_scc) {
-        for (auto &vert : scc) {
+    for (auto &scc : all_scc)
+    {
+        for (auto &vert : scc)
+        {
             os << vert + 1 << ' ';
         }
         os << '\n';

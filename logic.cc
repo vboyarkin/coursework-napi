@@ -17,7 +17,8 @@ using namespace std;
 typedef vec<vec<int>> vvi;
 
 // convert input string from electron to matrix
-vvi NapiStrToVector(const CallbackInfo& info_container) {
+vvi NapiStrToVector(const CallbackInfo &info_container)
+{
     auto str = info_container[0].ToString();
 
     istringstream is;
@@ -28,8 +29,10 @@ vvi NapiStrToVector(const CallbackInfo& info_container) {
 
     vvi mx(n, vec<int>(n));
 
-    for (size_t i = 0; i < n; i++) {
-        for (size_t j = 0; j < n; j++) {
+    for (size_t i = 0; i < n; i++)
+    {
+        for (size_t j = 0; j < n; j++)
+        {
             is >> mx[i][j];
         }
     }
@@ -37,10 +40,12 @@ vvi NapiStrToVector(const CallbackInfo& info_container) {
     return mx;
 }
 
-Object Compute_str(const CallbackInfo& info) {
+Object Compute_str(const CallbackInfo &info)
+{
     Env env = info.Env();
 
-    if (info.Length() < 1) {
+    if (info.Length() < 1)
+    {
         Object err = Object::New(env);
         err.Set(String::New(env, "error"),
                 String::New(env, "not enough parameters"));
@@ -58,7 +63,8 @@ Object Compute_str(const CallbackInfo& info) {
     return result;
 }
 
-Object Init(Env env, Object exports) {
+Object Init(Env env, Object exports)
+{
     exports.Set(String::New(env, "compute_str"),
                 Function::New(env, Compute_str));
 
